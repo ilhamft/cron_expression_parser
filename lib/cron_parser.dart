@@ -50,7 +50,7 @@ List<int> _parseWeekday(String value) {
     throw FormatException('Invalid characters on $value');
   }
   if (value == '*' || value == '?') return _weekdayDefaultValue;
-  value.replaceAll('L', '');
+  value = value.split('L').first;
   final cleanedValue = value.split('#');
   final list = _parseList(cleanedValue.first, 0, 7);
   // Replace 0 with 7

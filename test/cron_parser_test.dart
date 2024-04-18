@@ -477,6 +477,10 @@ void main() {
         Cron.parse('0 0 1 * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
         DateTime.parse('2024-02-01T00:00:00Z'),
       );
+      expect(
+        Cron.parse('* * L * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-31T00:00:00Z'),
+      );
     });
 
     test('.next() handle cron with month field correctly', () {
@@ -518,6 +522,14 @@ void main() {
       expect(
         Cron.parse('* * * * 4').next(DateTime.parse('2024-01-01T00:00:30Z')),
         DateTime.parse('2024-01-04T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('* * * * 1L').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-29T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('* * * * 0#3').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-21T00:00:00Z'),
       );
       expect(
         Cron.parse('0 0 * * 1').next(DateTime.parse('2024-01-01T00:00:30Z')),
