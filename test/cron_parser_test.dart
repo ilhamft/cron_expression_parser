@@ -153,7 +153,8 @@ void main() {
       expect(
         () => Cron.parse('0/0 * * * * *'),
         throwsA(TypeMatcher<FormatException>()),
-      );expect(
+      );
+      expect(
         () => Cron.parse('0/-1 * * * * *'),
         throwsA(TypeMatcher<FormatException>()),
       );
@@ -364,6 +365,163 @@ void main() {
       expect(
         () => Cron.parse('( * * * * *'),
         throwsA(TypeMatcher<FormatException>()),
+      );
+    });
+  });
+
+  group('.next()', () {
+    test('.next() throws exception on invalid cron string', () {
+      expect(
+        () => Cron.parse('* * 31 2 *').next(),
+        throwsA(TypeMatcher<FormatException>()),
+      );
+      expect(
+        () => Cron.parse('1/60 * * * *').next(),
+        throwsA(TypeMatcher<FormatException>()),
+      );
+      expect(
+        () => Cron.parse('* * 29 2 *').next(),
+        throwsA(TypeMatcher<FormatException>()),
+      );
+      expect(
+        () => Cron.parse('* * 29 2 *').next(),
+        throwsA(TypeMatcher<FormatException>()),
+      );
+    });
+
+    test('.next() handle leap year correctly', () {
+      expect(
+        Cron.parse('* * 29 2 *').next(DateTime.parse('2024-01-01T00Z')),
+        DateTime.parse('2024-02-29T00Z'),
+      );
+      expect(
+        Cron.parse('* * 29 2 *').next(DateTime.parse('2024-03-01T00Z')),
+        DateTime.parse('2028-02-29T00Z'),
+      );
+      expect(
+        Cron.parse('* * 29 2 *').next(DateTime.parse('2100-01-01T00Z')),
+        DateTime.parse('2104-02-29T00Z'),
+      );
+    });
+
+    test('.next() handle cron with default value correctly', () {
+      expect(
+        Cron.parse('* * * * * *').next(DateTime.parse('2024-01-01T00:00:00Z')),
+        DateTime.parse('2024-01-01T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('* * * * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-01T00:01:00Z'),
+      );
+    });
+
+    test('.next() handle cron with second field correctly', () {
+      expect(
+        Cron.parse('0 * * * * *').next(DateTime.parse('2024-01-01T00:00:00Z')),
+        DateTime.parse('2024-01-01T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('30 * * * * *').next(DateTime.parse('2024-01-01T00:00:00Z')),
+        DateTime.parse('2024-01-01T00:00:30Z'),
+      );
+    });
+
+    test('.next() handle cron with minute field correctly', () {
+      expect(
+        Cron.parse('0 * * * *').next(DateTime.parse('2024-01-01T00:00:00Z')),
+        DateTime.parse('2024-01-01T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('0 * * * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-01T01:00:00Z'),
+      );
+      expect(
+        Cron.parse('30 * * * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-01T00:30:00Z'),
+      );
+    });
+
+    test('.next() handle cron with hour field correctly', () {
+      expect(
+        Cron.parse('* 0 * * *').next(DateTime.parse('2024-01-01T00:00:00Z')),
+        DateTime.parse('2024-01-01T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('* 0 * * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-01T00:01:00Z'),
+      );
+      expect(
+        Cron.parse('* 12 * * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-01T12:00:00Z'),
+      );
+      expect(
+        Cron.parse('0 0 * * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-02T00:00:00Z'),
+      );
+    });
+
+    test('.next() handle cron with day field correctly', () {
+      expect(
+        Cron.parse('* * 1 * *').next(DateTime.parse('2024-01-01T00:00:00Z')),
+        DateTime.parse('2024-01-01T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('* * 1 * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-01T00:01:00Z'),
+      );
+      expect(
+        Cron.parse('* * 15 * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-15T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('0 0 1 * *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-02-01T00:00:00Z'),
+      );
+    });
+
+    test('.next() handle cron with month field correctly', () {
+      expect(
+        Cron.parse('* * * 1 *').next(DateTime.parse('2024-01-01T00:00:00Z')),
+        DateTime.parse('2024-01-01T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('* * * 1 *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-01T00:01:00Z'),
+      );
+      expect(
+        Cron.parse('* * * 6 *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-06-01T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('0 0 1 1 *').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2025-01-01T00:00:00Z'),
+      );
+    });
+
+    test('.next() handle cron with weekday field correctly', () {
+      expect(
+        Cron.parse('* * * * 1').next(DateTime.parse('2024-01-01T00:00:00Z')),
+        DateTime.parse('2024-01-01T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('* * * * 0').next(DateTime.parse('2024-01-01T00:00:00Z')),
+        DateTime.parse('2024-01-07T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('* * * * 7').next(DateTime.parse('2024-01-01T00:00:00Z')),
+        DateTime.parse('2024-01-07T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('* * * * 1').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-01T00:01:00Z'),
+      );
+      expect(
+        Cron.parse('* * * * 4').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-04T00:00:00Z'),
+      );
+      expect(
+        Cron.parse('0 0 * * 1').next(DateTime.parse('2024-01-01T00:00:30Z')),
+        DateTime.parse('2024-01-08T00:00:00Z'),
       );
     });
   });

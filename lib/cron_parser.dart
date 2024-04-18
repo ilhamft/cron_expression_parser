@@ -191,6 +191,8 @@ bool _isWeekdayMatch(Cron cron, DateTime dateTime) {
 }
 
 class Cron {
+  static const bool isUtc = true;
+
   late final List<int> _second;
   late final List<int> _minute;
   late final List<int> _hour;
@@ -200,12 +202,14 @@ class Cron {
   late final bool _lastDayOfMonth;
   late final bool _lastWeekdayOfMonth;
   late final int? _nthWeekday;
-  static const bool isUtc = true;
+  late final String _cronString;
+  String toString() => _cronString;
 
   /// Constructs a new [Cron] instance based on [formattedString].
   ///
   /// Throws a [FormatException] if the input string cannot be parsed.
   Cron.parse(String formattedString) {
+    _cronString = formattedString;
     List<String> values = formattedString.trim().split(RegExp(r'\s+'));
 
     if (values.length > 6 || values.length < 5) {
@@ -217,18 +221,28 @@ class Cron {
 
     for (var i = 0; i < 6; i++) {
       final value = values[i];
-      if (i == 0) _second = _parseMinute(value);
-      if (i == 1) _minute = _parseMinute(value);
-      if (i == 2) _hour = _parseHour(value);
-      if (i == 3) {
-        _lastDayOfMonth = _parseLastDayOfMonth(value);
-        _day = _parseDay(value);
-      }
-      if (i == 4) _month = _parseMonth(value);
-      if (i == 5) {
-        _lastWeekdayOfMonth = _parseLastWeekdayOfMonth(value);
-        _nthWeekday = _parseNthWeekday(value);
-        _weekday = _parseWeekday(value);
+      switch (i) {
+        case 0:
+          _second = _parseMinute(value);
+          break;
+        case 1:
+          _minute = _parseMinute(value);
+          break;
+        case 2:
+          _hour = _parseHour(value);
+          break;
+        case 3:
+          _lastDayOfMonth = _parseLastDayOfMonth(value);
+          _day = _parseDay(value);
+          break;
+        case 4:
+          _month = _parseMonth(value);
+          break;
+        case 5:
+          _lastWeekdayOfMonth = _parseLastWeekdayOfMonth(value);
+          _nthWeekday = _parseNthWeekday(value);
+          _weekday = _parseWeekday(value);
+          break;
       }
     }
   }
@@ -237,6 +251,8 @@ class Cron {
   ///
   /// If [from] is ommited the function will calculate
   /// the next iteration from current date and time.
+  ///
+  /// Returns [from] if it match the pattern.
   DateTime next([DateTime? from]) {
     from ??= DateTime.now();
     if (isUtc) from = from.toUtc();
@@ -250,20 +266,27 @@ class Cron {
     var stepCount = 0;
     var result = from;
     while (stepCount < loopLimit) {
+      stepCount++;
       if (isMatch(result)) return result;
       var addedDuration = const Duration(seconds: 1);
+      Duration? subtractedDuration;
       if (_isSecondMatch(this, result)) {
-        addedDuration = const Duration(minutes: 1);
+        addedDuration = Duration(seconds: 60 - result.second);
         if (_isMinuteMatch(this, result)) {
-          addedDuration = const Duration(hours: 1);
+          addedDuration = Duration(minutes: 60 - result.minute);
+          subtractedDuration = Duration(seconds: result.second);
           if (_isHourMatch(this, result)) {
-            addedDuration = const Duration(days: 1);
+            addedDuration = Duration(hours: 24 - result.hour);
+            subtractedDuration =
+                Duration(seconds: result.second, minutes: result.minute);
           }
         }
       }
       result = result.add(addedDuration);
+      if (subtractedDuration != null)
+        result = result.subtract(subtractedDuration);
     }
-    throw 'Failed to find next iteration';
+    throw FormatException('Invalid cron, failed to find next iteration');
   }
 
   /// Returns true if [dateTime] matches the pattern.
