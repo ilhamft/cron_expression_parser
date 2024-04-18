@@ -64,7 +64,7 @@ List<int> _parseWeekday(String value) {
 
 List<int> _parseList(String value, int minValue, int maxValue) {
   final values = value.split(',');
-  if (values.contains('')) {
+  if (values.contains('') || values.length == 0) {
     throw FormatException('Invalid list format on $value');
   }
   final List<int> list = values
@@ -85,12 +85,17 @@ List<int> _parseList(String value, int minValue, int maxValue) {
 
 List<int> _parseRepeat(String value, int minValue, int maxValue) {
   final values = value.split('/');
-  final repeatInterval = int.parse(values.last);
   var rangeValue = values.first;
-  if (values.contains('') || values.length > 2 || repeatInterval < 1) {
+  if (values.contains('') || values.length > 2 || values.length == 0) {
     throw FormatException('Invalid repeat format on $value');
   }
-  if (values.length == 1) return [int.parse(value)];
+  if (values.length == 1) {
+    return _parseRange(value, 1, minValue, maxValue);
+  }
+  final repeatInterval = int.parse(values.last);
+  if (repeatInterval < 1) {
+    throw FormatException('Invalid repeat format on $value');
+  }
   if (int.tryParse(values.first) != null) {
     rangeValue = '${values.first}-$maxValue';
   }
@@ -100,7 +105,7 @@ List<int> _parseRepeat(String value, int minValue, int maxValue) {
 List<int> _parseRange(
     String value, int repeatInterval, int minValue, int maxValue) {
   var values = value.split('-');
-  if (values.contains('') || values.length != 2) {
+  if (values.contains('') || values.length > 2 || values.length == 0) {
     throw FormatException('Invalid range format on $value');
   }
   final min = int.parse(values.first);
@@ -108,8 +113,9 @@ List<int> _parseRange(
   if (min < minValue || max > maxValue || min > max) {
     throw FormatException('Invalid range format on $value');
   }
+  if (values.length == 1) return [int.parse(value)];
   final List<int> list = [];
-  for (var i = min; i <= max; i + repeatInterval) {
+  for (var i = min; i <= max; i = i + repeatInterval) {
     list.add(i);
   }
   return list;
