@@ -8,7 +8,7 @@ final _minuteDefaultValue = List.generate(60, (i) => i);
 final _hourDefaultValue = List.generate(24, (i) => i);
 final _dayDefaultValue = List.generate(31, (i) => i + 1);
 final _monthDefaultValue = List.generate(12, (i) => i + 1);
-final _weekdayDefaultValue = List.generate(7, (i) => i);
+final _weekdayDefaultValue = List.generate(7, (i) => i + 1);
 
 List<int> _parseMinute(String value) {
   if (!_standardRegex.hasMatch(value)) {
@@ -40,6 +40,12 @@ List<int> _parseMonth(String value) {
   if (!_standardRegex.hasMatch(value)) {
     throw FormatException('Invalid characters on $value');
   }
+  if (value
+      .split(',')
+      .where((e) => e.contains('L') && !RegExp(r'^L$').hasMatch(e))
+      .isNotEmpty) {
+    throw FormatException('Invalid characters on $value');
+  }
   if (value == '*' || value == '?') return _monthDefaultValue;
   return _parseList(value, 1, 12);
 }
@@ -49,8 +55,20 @@ List<int> _parseWeekday(String value) {
   if (!_weekdayRegex.hasMatch(value)) {
     throw FormatException('Invalid characters on $value');
   }
+  if (value
+      .split(',')
+      .where((e) => e.contains('L') && !RegExp(r'^\dL$').hasMatch(e))
+      .isNotEmpty) {
+    throw FormatException('Invalid characters on $value');
+  }
   if (value == '*' || value == '?') return _weekdayDefaultValue;
-  value = value.split('L').first;
+  if (value.contains('#') &&
+      value.contains(',') &&
+      value.contains('/') &&
+      value.contains('-') &&
+      value.contains('L')) {
+    throw FormatException('Invalid characters on $value');
+  }
   final cleanedValue = value.split('#');
   final list = _parseList(cleanedValue.first, 0, 7);
   // Replace 0 with 7
@@ -68,8 +86,9 @@ List<int> _parseList(String value, int minValue, int maxValue) {
     throw FormatException('Invalid list format on $value');
   }
   final List<int> list = values
+      .where((e) => e != 'L')
       .map(
-        (e) => _parseRepeat(e, minValue, maxValue),
+        (e) => _parseRepeat(e.split('L').first, minValue, maxValue),
       )
       .toList()
       .fold(
@@ -79,6 +98,7 @@ List<int> _parseList(String value, int minValue, int maxValue) {
       return prev;
     },
   );
+  list.remove('L');
   list.sort();
   return list;
 }
@@ -125,8 +145,14 @@ bool _parseLastDayOfMonth(String value) {
   return value == 'L' ? true : false;
 }
 
-bool _parseLastWeekdayOfMonth(String value) {
-  return value.contains('L') ? true : false;
+List<int> _parseLastWeekdayOfMonth(String value) {
+  return value
+      .split(',')
+      .where((e) => e.contains('L'))
+      .map((e) => int.tryParse(e.split('L').first) ?? -1)
+      .where((e) => e != -1)
+      .map((e) => e == 0 ? 7 : e)
+      .toList();
 }
 
 int? _parseNthWeekday(String value) {
@@ -173,7 +199,7 @@ bool _isDayMatch(Cron cron, DateTime dateTime) {
 
 bool _isWeekdayMatch(Cron cron, DateTime dateTime) {
   var result = cron._weekday.contains(dateTime.weekday);
-  if (cron._lastWeekdayOfMonth) {
+  if (cron._lastWeekdayOfMonth.contains(dateTime.weekday)) {
     final islastWeekdayOfMonth =
         dateTime.add(const Duration(days: 7)).month != dateTime.month;
     result = islastWeekdayOfMonth ? result : false;
@@ -200,7 +226,7 @@ class Cron {
   late final List<int> _month;
   late final List<int> _weekday;
   late final bool _lastDayOfMonth;
-  late final bool _lastWeekdayOfMonth;
+  late final List<int> _lastWeekdayOfMonth;
   late final int? _nthWeekday;
   late final String _cronString;
 
@@ -300,5 +326,19 @@ class Cron {
         _isMonthMatch(this, dateTime) &&
         _isDayMatch(this, dateTime) &&
         _isWeekdayMatch(this, dateTime);
+  }
+
+  /// Creates a [List] containing the iterations of this [Cron] between [from] and [until].
+  List<DateTime> toList(DateTime from, DateTime until) {
+    List<DateTime> result = [];
+    for (var current = from, next = current;
+        current.compareTo(until) <= 0;
+        current = next.isAtSameMomentAs(current)
+            ? current.add(const Duration(seconds: 1))
+            : next.add(const Duration(seconds: 1))) {
+      next = this.next(current);
+      if (next.compareTo(until) <= 0) result.add(next);
+    }
+    return result;
   }
 }
