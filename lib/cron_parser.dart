@@ -203,6 +203,8 @@ class Cron {
   late final bool _lastWeekdayOfMonth;
   late final int? _nthWeekday;
   late final String _cronString;
+
+  /// Returns a cron string for this instance.
   String toString() => _cronString;
 
   /// Constructs a new [Cron] instance based on [formattedString].
