@@ -1,4 +1,4 @@
-library cron_parser;
+library cron_expression_parser;
 
 final _standardRegex = RegExp(r'^[,*\d/-]+$');
 final _dayRegex = RegExp(r'^[?,*\dL/-]+$');

@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 
-import 'package:cron_parser/cron_parser.dart';
+import 'package:cron_expression_parser/parser.dart';
 
 void main() {
   group('Cron().parse()', () {
