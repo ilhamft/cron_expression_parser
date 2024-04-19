@@ -330,6 +330,8 @@ class Cron {
 
   /// Creates a [List] containing the iterations of this [Cron] between [from] and [until].
   List<DateTime> toList(DateTime from, DateTime until) {
+    if (until.compareTo(from) < 0)
+      throw FormatException('Until must before from');
     List<DateTime> result = [];
     for (var current = from, next = current;
         current.compareTo(until) <= 0;

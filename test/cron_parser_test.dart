@@ -539,6 +539,14 @@ void main() {
   });
 
   group('.toList()', () {
+    test('.toList() throws exception on invalid parameter', () {
+      expect(
+        () => Cron.parse('* * * * *')
+            .toList(DateTime.parse('2024'), DateTime.parse('2023')),
+        throwsA(TypeMatcher<FormatException>()),
+      );
+    });
+
     test('.toList() handle cron with default value correctly', () {
       expect(
         Cron.parse('* * * * * *').toList(
