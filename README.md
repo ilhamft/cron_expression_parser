@@ -60,7 +60,7 @@ and `0 0 * * 1L` indicate iteration at `00:00` on every last Monday of the month
 A simple usage example:
 
 ```dart
-import 'package:cron_expression_parser/parser.dart';
+import 'package:cron_expression_parser/cron_expression_parser.dart';
 
 // Every 20 minutes
 final cron = Cron.parse('*/20 * * * *');
@@ -75,7 +75,7 @@ print(cron.toList(
 Another example:
 
 ```dart
-import 'package:cron_expression_parser/parser.dart';
+import 'package:cron_expression_parser/cron_expression_parser.dart';
 
 // At midnight on the last day of the month
 final cron = Cron.parse('0 0 L * *');
