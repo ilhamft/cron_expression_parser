@@ -15,6 +15,7 @@ List<int> _parseMinute(String value) {
     throw FormatException('Invalid characters on $value');
   }
   if (value == '*' || value == '?') return _minuteDefaultValue;
+  value = value.replaceAll('*', '0-59');
   return _parseList(value, 0, 59);
 }
 
@@ -23,6 +24,7 @@ List<int> _parseHour(String value) {
     throw FormatException('Invalid characters on $value');
   }
   if (value == '*' || value == '?') return _hourDefaultValue;
+  value = value.replaceAll('*', '0-23');
   return _parseList(value, 0, 23);
 }
 
@@ -32,6 +34,7 @@ List<int> _parseDay(String value) {
   }
   if (value == '*' || value == '?') return _dayDefaultValue;
   if (value == 'L') return [];
+  value = value.replaceAll('*', '1-31');
   return _parseList(value, 1, 31);
 }
 
@@ -47,6 +50,7 @@ List<int> _parseMonth(String value) {
     throw FormatException('Invalid characters on $value');
   }
   if (value == '*' || value == '?') return _monthDefaultValue;
+  value = value.replaceAll('*', '1-12');
   return _parseList(value, 1, 12);
 }
 
@@ -69,8 +73,9 @@ List<int> _parseWeekday(String value) {
       value.contains('L')) {
     throw FormatException('Invalid characters on $value');
   }
-  final cleanedValue = value.split('#');
-  final list = _parseList(cleanedValue.first, 0, 7);
+  value = value.split('#').first;
+  value = value.replaceAll('*', '1-7');
+  final list = _parseList(value, 0, 7);
   // Replace 0 with 7
   if (list.contains(0)) {
     list.remove(0);

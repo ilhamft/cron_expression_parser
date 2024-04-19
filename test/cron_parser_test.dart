@@ -1375,4 +1375,25 @@ void main() {
       );
     });
   });
+
+  group('test', () {
+    test('example 1', () {
+      // Every 20 minutes
+      final cron = Cron.parse('*/20 * * * *');
+      print(cron.toList(
+        DateTime.parse('2000-01-01T00:00Z'),
+        DateTime.parse('2000-01-01T01:00Z'),
+      ));
+
+      // [2000-01-01 00:00:00.000Z, 2000-01-01 00:20:00.000Z, 2000-01-01 00:40:00.000Z, 2000-01-01 01:00:00.000Z]
+    });
+
+    test('example 2', () {
+      // At midnight on the last day of the month
+      final cron = Cron.parse('0 0 L * *');
+      print(cron.next(DateTime.parse('2000-02-01T00:00Z')));
+
+      // 2000-02-29 00:00:00.000Z
+    });
+  });
 }
