@@ -1,8 +1,8 @@
-# cron-parser
+# cron_parser
 
 Parses cron expression.
 
-[![pub package](https://img.shields.io/pub/v/cron-parser.svg)](https://pub.dev/packages/cron-parser)
+[![pub package](https://img.shields.io/pub/v/cron_parser.svg)](https://pub.dev/packages/cron_parser)
 
 ## Supported format
 
@@ -60,7 +60,7 @@ and `0 0 * * 1L` indicate iteration at `00:00` on every last Monday of the month
 A simple usage example:
 
 ```dart
-import 'package:cron-parser/cron_parser.dart';
+import 'package:cron_parser/cron_parser.dart';
 
 // Every 20 minutes
 final cron = Cron.parse('*/20 * * * *');
@@ -75,7 +75,7 @@ print(cron.toList(
 Another example:
 
 ```dart
-import 'package:cron-parser/cron_parser.dart';
+import 'package:cron_parser/cron_parser.dart';
 
 // At midnight on the last day of the month
 final cron = Cron.parse('0 0 L * *');
@@ -89,5 +89,5 @@ print(cron.next(DateTime.parse('2000-02-01T00:00Z')));
 - [source code][source]
 - contributors: [Ilham F][ilhamft]
 
-[source]: https://github.com/ilhamft/cron-parser
+[source]: https://github.com/ilhamft/cron_parser
 [ilhamft]: https://github.com/ilhamft
