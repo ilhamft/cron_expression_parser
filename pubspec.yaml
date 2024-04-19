@@ -4,10 +4,13 @@ version: 1.0.0
 repository: https://github.com/ilhamft/cron-parser
 homepage: https://github.com/ilhamft/cron-parser
 
+topics:
+  - cron
+  - cron-parser
+  - cron-time
+
 environment:
   sdk: ">=3.3.2 <4.0.0"
-
-dependencies:
 
 dev_dependencies:
   test: ^1.24.9
